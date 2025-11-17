@@ -14,33 +14,39 @@ def get_sys_args():
 
 def read_file_data(path):
     try:
-        with open(path, "r") as f:
-            lines = f.readlines()
-            return lines
+        with open(path, "rb") as f:
+            data = f.read()
+            return data
 
     except FileNotFoundError:
         raise Exception("File does not exist.")
 
 
 def read_byte_count_from_file(path):
-    with open(path, "rb") as f:
-        return len(f.read())
+    return len(read_file_data(path))
 
 
-def read_word_count_from_lines(lines):
+def read_word_count_from_file(path):
+    data = read_file_data(path)
+
     word_count = 0
-    for line in lines:
-        formatted_line = " ".join(line.split())
-        words = formatted_line.split(" ")
-        while "" in words:
-            words.remove("")
-        word_count += len(words)
+    is_word = False
+
+    for b in data:
+        if b in (9, 10, 11, 12, 13, 32):
+            is_word = False
+        else:
+            if not is_word:
+                word_count += 1
+                is_word = True
 
     return word_count
 
 
-def get_line_count(lines):
-    return len(lines) - (1 if lines[-1][-1] != "\n" else 0)
+def get_line_count(path):
+    data = read_file_data(path)
+
+    return data.count(ord("\n"))
 
 
 if __name__ == "__main__":
@@ -50,9 +56,9 @@ if __name__ == "__main__":
 
     data = read_file_data(filename)
 
-    line_count = get_line_count(data)
+    line_count = get_line_count(filename)
 
-    word_count = read_word_count_from_lines(data)
+    word_count = read_word_count_from_file(filename)
 
     byte_count = read_byte_count_from_file(filename)
 
