@@ -97,21 +97,13 @@ def get_line_count(path) -> int:
         int: the number of lines.
     """
     data = read_file_data(path)
-
     return data.count(ord("\n"))
 
 
 if __name__ == "__main__":
     arguments = get_sys_args()
-
     filename = arguments[0]
-
-    data = read_file_data(filename)
-
     line_count = get_line_count(filename)
-
     word_count = read_word_count_from_file(filename)
-
     byte_count = read_byte_count_from_file(filename)
-
     print(f"\t{line_count}\t{word_count}\t{byte_count} {filename}")
