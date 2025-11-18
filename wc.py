@@ -1,5 +1,6 @@
 import sys
 
+COMMANDS = ["w", "c", "l", "m", "L"]
 
 def get_sys_args() -> list[str]:
     """
@@ -41,7 +42,7 @@ def read_file_data(path) -> list[bytes]:
             return data
 
     except FileNotFoundError:
-        raise Exception("File does not exist.")
+        raise Exception(f"File '{path}' does not exist.")
 
 
 def read_byte_count_from_file(path) -> int:
@@ -99,6 +100,39 @@ def get_line_count(path) -> int:
     data = read_file_data(path)
     return data.count(ord("\n"))
 
+def handle_flags(arg):
+    '''
+    Function to handle flag arguments.
+
+    Parameters:
+        arg (str): the argument being evaluated (exluding beginning -)
+    '''
+
+    word_count = False
+    line_count = False
+    byte_count = False
+
+    for char in arg:
+        # handles malformed flag arguments
+        if char not in COMMANDS:
+            raise Exception(f"Flag {char} is not valid.")
+        
+        # checks to see what the command in the argument does
+        match char:
+            case "w":
+                word_count = True
+            case "l":
+                line_count = True
+            case "c":
+                byte_count = True
+            case "L":
+                raise Exception("Longest line flag not supported.")
+            case "m":
+                raise Exception("Multi-byte character count flag not supported")
+    
+    return line_count, word_count, byte_count
+                
+        
 
 def handle_output(args):
     """
@@ -109,55 +143,42 @@ def handle_output(args):
         args (list[str]): list of parameters from the terminal.
 
     """
-    commands = ["w", "c", "l", "m", "L"]
-
-    # array of files that have already been printed to stdout
-    files_executed = []
+    
+    # flag variables for commandline
+    word_count = False
+    line_count = False
+    byte_count = False
 
     for i, arg in enumerate(args):
-        word_count = False
-        line_count = False
-        byte_count = False
 
         # if the argument is a flag...
         if arg[0] == "-":
-            for char in arg[1:]:
-                # handles malformed flag arguments
-                if char not in commands:
-                    raise Exception(f"Flag {char} is not valid.")
+            line_count2, word_count2, byte_count2 = handle_flags(arg[1:])
 
-                # checks to see what the command in the argument does
-                match char:
-                    case "w":
-                        word_count = True
-                    case "l":
-                        line_count = True
-                    case "c":
-                        byte_count = True
-                    case "L":
-                        raise Exception("Longest line flag not supported.")
-                    case "m":
-                        raise Exception("Multi-byte character count flag not supported")
-
-            if len(args) == i + 1:
-                raise Exception("No file passed.")
-
-            filename = args[i + 1]
-            files_executed.append(i + 1)
-            print(
-                f"\t{str(get_line_count(filename)) + '\t' if line_count else ''}{str(read_word_count_from_file(filename)) + '\t' if word_count else ''}{str(read_byte_count_from_file(filename)) + '\t' if byte_count else ''}{filename}"
-            )
-
+            # applies or to each flag to update the new true ones
+            line_count = line_count or line_count2
+            word_count = word_count or word_count2
+            byte_count = byte_count or byte_count2
+                    
         # when the argument is a filename...
         else:
-            # checks to see if this filename has already been printed to stdout
-            if i not in files_executed:
-                filename = args[i]
-                files_executed.append(i)
-                print(
-                    f"\t{get_line_count(filename)}\t{read_word_count_from_file(filename)}\t{read_byte_count_from_file(filename)}\t{filename}"
-                )
 
+            filename = args[i]
+
+            # if no flags have been passed
+            if not(line_count or word_count or byte_count):
+                word_count = True
+                line_count = True
+                byte_count = True
+
+            print(
+                    f"\t{str(get_line_count(filename)) + '\t' if line_count else ''}{str(read_word_count_from_file(filename)) + '\t' if word_count else ''}{str(read_byte_count_from_file(filename)) + '\t' if byte_count else ''}{filename}"
+            )
+
+            # reset flags as output has been provided
+            word_count = False
+            line_count = False
+            byte_count = False
 
 if __name__ == "__main__":
     arguments = get_sys_args()
