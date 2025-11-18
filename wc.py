@@ -101,17 +101,66 @@ def get_line_count(path) -> int:
     return data.count(ord("\n"))
 
 
+def handle_output(args):
+    """
+    Responsible for handling the terminal input from the user.
+    It handles flags and multiple files.
+
+    Parameters:
+        args (list[str]): list of parameters from the terminal.
+
+    """
+    commands = ["w", "c", "l", "m", "L"]
+
+    # array of files that have already been printed to stdout
+    files_executed = []
+
+    for i, arg in enumerate(args):
+        word_count = False
+        line_count = False
+        byte_count = False
+
+        # if the argument is a flag...
+        if arg[0] == "-":
+            for char in arg[1:]:
+                # handles malformed flag arguments
+                if char not in commands:
+                    raise Exception(f"Flag {char} is not valid.")
+
+                # checks to see what the command in the argument does
+                match char:
+                    case "w":
+                        word_count = True
+                    case "l":
+                        line_count = True
+                    case "c":
+                        byte_count = True
+                    case "L":
+                        raise Exception("Longest line flag not supported.")
+                    case "m":
+                        raise Exception("Multi-byte character count flag not supported")
+
+            if len(args) == i + 1:
+                raise Exception("No file passed.")
+
+            filename = args[i + 1]
+            files_executed.append(i + 1)
+            print(
+                f"\t{str(get_line_count(filename)) + '\t' if line_count else ''}{str(read_word_count_from_file(filename)) + '\t' if word_count else ''}{str(read_byte_count_from_file(filename)) + '\t' if byte_count else ''}{filename}"
+            )
+
+        # when the argument is a filename...
+        else:
+            # checks to see if this filename has already been printed to stdout
+            if i not in files_executed:
+                filename = args[i]
+                files_executed.append(i)
+                print(
+                    f"\t{get_line_count(filename)}\t{read_word_count_from_file(filename)}\t{read_byte_count_from_file(filename)}\t{filename}"
+                )
+
+
 if __name__ == "__main__":
     arguments = get_sys_args()
 
-    filename = arguments[0]
-
-    data = read_file_data(filename)
-
-    line_count = get_line_count(filename)
-
-    word_count = read_word_count_from_file(filename)
-
-    byte_count = read_byte_count_from_file(filename)
-
-    print(f"\t{line_count}\t{word_count}\t{byte_count} {filename}")
+    handle_output(arguments)
