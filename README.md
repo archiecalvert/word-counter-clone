@@ -26,7 +26,7 @@ For the flags, they are as follows:
 - m: 'correct' character count, as some characters take more than one byte.
 - L: length of longest line.
 
-This weeks coursework also mentioned adding in alternative flags, specifically '''--lines''', '''--files0-from''', and '''--libxo'''. These haven't been implemented
+This weeks coursework also mentioned adding in alternative flags, specifically ```--lines```, ```--files0-from```, and ```--libxo```. These haven't been implemented
 
 # Week 3 Content - Fleshing out
 This week essentially was fleshing out and polishing the feature set of the wc, and also creating a test suite.
